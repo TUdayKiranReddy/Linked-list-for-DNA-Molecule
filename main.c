@@ -254,6 +254,8 @@ int main()
 	int d = 0;
 	int i = 0;
 	int stat = 0;
+	
+	
 	start:
 		printf("Menu\nPlease enter the required operation:\n");
 		printf("1.CreateMolecule\n");
@@ -262,7 +264,7 @@ int main()
 		printf("4.Split the DNA Molecule\n");
 		printf("5.PrintChain\n");
 		printf("6.PrintAllChain\n");
-		scanf("%d",d);
+		scanf("%d",&d);
 		if( d == 1)
 		{
 			dna[i] = CreateChain();
@@ -274,15 +276,109 @@ int main()
 		}
 		else if( d == 2 && stat == 1)
 		{
-			if( i != 1)
-			{
+			redna:
 				printf("Select in which DNA Molecule should the Nucleotide has to be inserted.\n");
 				for(int w =0;w<i;w++)
 					printf("DNA %d\t",w+1);
+				printf("\n");
+				int p;
+				scanf("%d",&p);
+				if(p < i+1 && p>0)
+				{
+					printf("Enter what nucleotide to should be inserted in DNA %d:",p);
+					char s;
+					renucleotide:
+						scanf("%s",&s);
+						if(char_check(s) == 1)
+						{
+							
+							printf("Enter at which chain should %c be inserted in DNA %d:\n1.Alpha\t2.Beta\n",s,p);
+							int q;
+							rechain:
+								scanf("%d",&q);
+								if( q ==1 || q ==2)
+								{
+									printf("Enter at which position should %c nucleotide be inserted in DNA %d:",s,p);
+									int r;
+									scanf("%d",&r);
+									insert(dna[i-1],q,s,r);
+								}
+								else
+								{
+									printf("Invalid Chain please re-enter chain at which %c nucleotide be inserted in DNA %d:\n1.Alpha\t2.Beta\n",s,p);
+									goto rechain;
+								}
+						}
+						else
+						{
+							printf("Invalid nucleotide please re-enter what nucleotide to should be inserted in DNA %d:",p);
+							goto renucleotide;
+						}
+					}
+				else
+				{
+					printf("Invalid DNA.");
+					goto redna;
+				}
+			goto start;
+		}
+		else if(d == 3 && stat == 1)
+		{
+			printf("Select in which DNA Molecule should the Nucleotide has to be deleted.\n");
+			for(int w =0;w<i;w++)
+				printf("DNA %d\t",w+1);
+			printf("\n");
+			int e;
+			re_delete_dna:
+				scanf("%d",&e);
+				if(e < i+1 && e>0)
+				{
+					printf("Enter at which position should nucleotide be deleted:");
+					int w;
+					scanf("%d",&w);
+					delete(dna[i-1],w);
+				}
+				else
+				{
+					printf("Invalid DNA.");
+					goto re_delete_dna;
+				}
+			goto start;
+		}
+		//~ else if ( d == 4 && stat ==1)
+		//~ {
 			
-		
-		
-	
+		else if(d == 5 && stat==1)
+		{
+			printf("Select which DNA molecule should be printed.\n");
+			for(int w =0;w<i;w++)
+				printf("DNA %d\t",w+1);
+			printf("\n");
+			int y;
+			re_print_dna:
+				scanf("%d",&y);
+				if(y < i+1 && y >0)
+				{
+					printf("DNA %d is",y);
+					printChain(dna[i-1]);
+				}
+				else
+				{
+					printf("Invalid DNA.");
+					goto re_print_dna;
+				}
+			goto start;
+		}
+		else if(d==6 && stat==1)
+		{
+			for(int w =0;w<i;w++)
+			{
+				printf("DNA %d\t",w+1);
+				printf("\n");
+				printChain(dna[w]);
+			}
+		goto start;
+		}
 	//~ struct node* c;
 	//~ c = CreateChain();
 	//~ temp[0] = c;
