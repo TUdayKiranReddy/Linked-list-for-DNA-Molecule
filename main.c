@@ -41,27 +41,49 @@ int complement(char t)
 void printChain(struct node *DNA_Molecule_ID)
 {
 	struct node* temp = NULL;
-	struct node* another = NULL;
+	//~ struct node* another = NULL;
 	temp = DNA_Molecule_ID;
 	char s;
-	printf("Alpha chain is:\t");
+	printf("Alpha->");
 	while(temp != NULL)
 	{
 		s = temp->nucleotide; 
-		if(case_check(s) == 0)
-			printf("%c",s - 32);
+		temp = temp->inter;
+		if(temp!=NULL)
+		{
+			if(case_check(s) == 0)
+				printf("%c--",s - 32);
+			else
+				printf("%c--",s);
+		}
 		else
-			printf("%c",s);
+		{
+			if(case_check(s) == 0)
+				printf("%c",s - 32);
+			else
+				printf("%c",s);
+		}	
+	}
+	printf("\n");
+	printf("       ");
+	temp = DNA_Molecule_ID;
+	while(temp != NULL)
+	{
+		printf("|  ");
 		temp = temp->inter;
 	}
 	temp = DNA_Molecule_ID;
 	//another = temp->intra;
-	printf("\nBeta chain is:\t");
+	printf("\nBeta-->");
 	while(temp != NULL)
 	{
-		another = temp->intra ;
-		printf("%c",complement(temp->nucleotide));//another->nucleotide);
+		//~ another = temp->intra ;
+		s = complement(temp->nucleotide);
 		temp = temp->inter;
+		if(temp != NULL)
+			printf("%c--",s);
+		else
+			printf("%c",s);
 	}
 	printf("\n");
 }
@@ -109,10 +131,47 @@ struct node *CreateChain()
 				goto rescan;
 			}
 	}
-	printf("DNA Molecule is succesfully added.\n");
+	//printf("DNA Molecule is succesfully added.\n");
 	return (head);
 }
 
+struct node *create_psuedo_chain(struct node *DNA_Molecule_ID)
+{
+	struct node* head = NULL;
+	struct node* temp = NULL;
+	struct node* add = NULL;
+	struct node* another = NULL;
+	struct node* psuedo = DNA_Molecule_ID;
+	
+	while(psuedo != NULL)
+	{
+		temp = (struct node*)malloc(sizeof(struct node));
+		another = (struct node*)malloc(sizeof(struct node));
+		
+		temp->nucleotide = psuedo->nucleotide;
+		another->nucleotide = complement(temp->nucleotide);
+		if(head == NULL)
+		{
+			head = temp;	
+			head->intra = another;
+			another->intra = NULL;
+			another->inter = NULL;
+			add = head;
+		}
+		
+		else
+		{
+			add->intra = another;
+			add->inter = temp;
+			another->intra = NULL;
+			another->inter = NULL;
+			add = add->inter;
+		}
+		psuedo = psuedo->inter;
+	}
+	return (head);
+}
+	
 int chain_length(struct node* DNA_Molecule_ID)
 {
 	struct node*temp = NULL;
@@ -158,7 +217,7 @@ void insert(struct node* DNA_Molecule_ID,int Chain_ID,char Nucleotide,int positi
 			{
 				add = DNA_Molecule_ID;
 				temp->nucleotide = Nucleotide;
-				for(int i=0;i<position - 1 ;i++)
+				for(int i=0;i<position - 2 ;i++)
 					add = add->inter;
 				temp->inter = add->inter;
 				add->inter = temp;
@@ -190,7 +249,7 @@ void insert(struct node* DNA_Molecule_ID,int Chain_ID,char Nucleotide,int positi
 			{
 				add = DNA_Molecule_ID;
 				temp->nucleotide = complement(Nucleotide);
-				for(int i=0;i<position - 1;i++)
+				for(int i=0;i<position - 2;i++)
 					add = add->inter;
 				temp->inter = add->inter;
 				add->inter = temp;
@@ -234,30 +293,32 @@ void delete(struct node* DNA_Molecule_ID,int position)
 		printChain(DNA_Molecule_ID);
 	}
 }
-void split(struct node* DNA_Molecule_ID)
+struct node** split(struct node* DNA_Molecule_ID)
 {
-	struct node* mole_1 = NULL;
-	struct node* mole_2 = NULL;
-	mole_1 = (struct node*)malloc(sizeof(struct node));
-	mole_2 = (struct node*)malloc(sizeof(struct node));
-	mole_1 = DNA_Molecule_ID;
-	mole_2 = DNA_Molecule_ID;
-	printf("Splited Molecules are:\n");
-	printf("First Molecule is:\n");
-	printChain(mole_1);
-	printf("Secound Molecule is:\n");
-	printChain(mole_2);
+	static struct node* mole[2];
+	mole[0] = (struct node*)malloc(sizeof(struct node));
+	mole[1] = (struct node*)malloc(sizeof(struct node));
+	mole[0] = create_psuedo_chain(DNA_Molecule_ID);
+	mole[1]= create_psuedo_chain(DNA_Molecule_ID);
+
+	//~ printf("Splited Molecules are:\n");
+	//~ printf("First Molecule is:\n");
+	//~ printChain(mole_1);
+	//~ printf("Secound Molecule is:\n");
+	//~ printChain(mole_2);
+	return mole;
+	
 }
 int main()
 {
-	struct node* dna[10];
+	struct node* dna[20];
 	int d = 0;
 	int i = 0;
 	int stat = 0;
 	
-	
+
 	start:
-		printf("Menu\nPlease enter the required operation:\n");
+		printf("\nMenu\nPlease enter the required operation:\n");
 		printf("1.CreateMolecule\n");
 		printf("2.Insert nucleotide in a DNA Molecule\n");
 		printf("3.Delete nucleotide in a DNA Molecule\n");
@@ -268,8 +329,8 @@ int main()
 		if( d == 1)
 		{
 			dna[i] = CreateChain();
-			printf("DNA %d is\n",i+1);
-			printChain(dna[i]);
+			printf("DNA %d is successfully added.\n",i+1);
+			//printChain(dna[i]);
 			i++;
 			stat = 1;
 			goto start;
@@ -289,19 +350,20 @@ int main()
 					char s;
 					renucleotide:
 						scanf("%s",&s);
+						//p++;
 						if(char_check(s) == 1)
 						{
-							
-							printf("Enter at which chain should %c be inserted in DNA %d:\n1.Alpha\t2.Beta\n",s,p);
+							printf("Enter at which chain should %c be inserted in DNA %d:\n1.Alpha\t2.Beta\n",s,p+1);
 							int q;
 							rechain:
 								scanf("%d",&q);
 								if( q ==1 || q ==2)
 								{
-									printf("Enter at which position should %c nucleotide be inserted in DNA %d:",s,p);
+									printf("Enter at which position should %c nucleotide be inserted in DNA %d:",s,p+1);
+									//printf("%d\n",p);
 									int r;
 									scanf("%d",&r);
-									insert(dna[i-1],q,s,r);
+									insert(dna[p],q,s,r);
 								}
 								else
 								{
@@ -314,7 +376,7 @@ int main()
 							printf("Invalid nucleotide please re-enter what nucleotide to should be inserted in DNA %d:",p);
 							goto renucleotide;
 						}
-					}
+				}
 				else
 				{
 					printf("Invalid DNA.");
@@ -334,9 +396,9 @@ int main()
 				if(e < i+1 && e>0)
 				{
 					printf("Enter at which position should nucleotide be deleted:");
-					int w;
-					scanf("%d",&w);
-					delete(dna[i-1],w);
+					int b;
+					scanf("%d",&b);
+					delete(dna[e-1],b);
 				}
 				else
 				{
@@ -345,8 +407,29 @@ int main()
 				}
 			goto start;
 		}
-		//~ else if ( d == 4 && stat ==1)
-		//~ {
+		else if ( d == 4 && stat ==1)
+		{
+			printf("Select in which DNA Molecule should be splited.\n");
+			for(int w =0;w<i;w++)
+				printf("DNA %d\t",w+1);
+			printf("\n");
+			int e;
+			re_split_dna:
+				scanf("%d",&e);
+				if(e < i+1 && e>0)
+				{
+					struct node** cef = split(dna[e-1]);
+					dna[e-1] = cef[0];
+					dna[i] = cef[1];
+					i++;
+				}
+				else
+				{
+					printf("Invalid DNA.");
+					goto re_split_dna;
+				}
+			goto start;
+		}
 			
 		else if(d == 5 && stat==1)
 		{
@@ -359,12 +442,12 @@ int main()
 				scanf("%d",&y);
 				if(y < i+1 && y >0)
 				{
-					printf("DNA %d is",y);
-					printChain(dna[i-1]);
+					printf("DNA %d is\n",y);
+					printChain(dna[y-1]);
 				}
 				else
 				{
-					printf("Invalid DNA.");
+					printf("Invalid DNA.\n");
 					goto re_print_dna;
 				}
 			goto start;
@@ -379,9 +462,12 @@ int main()
 			}
 		goto start;
 		}
-	//~ struct node* c;
-	//~ c = CreateChain();
-	//~ temp[0] = c;
-	//~ printChain(temp[0]);
-
+		else
+		{
+			printf("Invalid Input");
+			goto start;
+		}
+//~ struct node* c = CreateChain();
+//~ insert(c,2,'t',2);
+//~ printChain(c);
 }
